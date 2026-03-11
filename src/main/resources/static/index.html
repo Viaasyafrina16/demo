@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>CRUD KTP</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</head>
+
+<body>
+
+<h2>Form KTP</h2>
+
+<input type="hidden" id="id">
+
+<input type="text" id="nomorKtp" placeholder="Nomor KTP">
+<input type="text" id="namaLengkap" placeholder="Nama Lengkap">
+<input type="text" id="alamat" placeholder="Alamat">
+
+<input type="date" id="tanggalLahir">
+
+<select id="jenisKelamin">
+    <option value="Laki-laki">Laki-laki</option>
+    <option value="Perempuan">Perempuan</option>
+</select>
+
+<button onclick="save()">Simpan</button>
+
+<h2>Data KTP</h2>
+
+<table border="1">
+
+    <thead>
+    <tr>
+        <th>Nomor KTP</th>
+        <th>Nama</th>
+        <th>Alamat</th>
+        <th>Tanggal Lahir</th>
+        <th>Jenis Kelamin</th>
+        <th>Aksi</th>
+    </tr>
+    </thead>
+
+    <tbody id="tableBody"></tbody>
+
+</table>
+
+<script>
+
+    const api = "http://localhost:8080/ktp"
+
+    function loadData(){
+
+    $.get(api,function(res){
+
+    let html="";
+
+    res.data.forEach(d => {
+
+    html += `
+    <tr>
+    <td>${d.nomorKtp}</td>
+    <td>${d.namaLengkap}</td>
+    <td>${d.alamat}</td>
+    <td>${d.tanggalLahir}</td>
+    <td>${d.jenisKelamin}</td>
+    <td>
+    <button onclick="edit(${d.id})">Edit</button>
+    <button onclick="hapus(${d.id})">Delete</button>
+    </td>
+    </tr>
+    `
+
+    })
+
+    $("#tableBody").html(html)
+
+    })
+
+    }
+
+    function save(){
+
+    let id = $("#id").val()
+
+    let data = {
+
+    nomorKtp: $("#nomorKtp").val(),
+    namaLengkap: $("#namaLengkap").val(),
+    alamat: $("#alamat").val(),
+    tanggalLahir: $("#tanggalLahir").val(),
+    jenisKelamin: $("#jenisKelamin").val()
+
+    }
+
+    if(id == ""){
+
+    $.ajax({
+
+    url: api,
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(data),
+
+    success:function(res){
+
+    alert(res.message || "Data berhasil ditambahkan")
+    resetForm()
+    loadData()
+
+    },
+
+    error:function(xhr){
+
+    alert(xhr.responseJSON?.message || " nomor KTP sudah ada ")
+
+    }
+
+    })
+
+    }else{
+
+    $.ajax({
+
+    url: api+"/"+id,
+    method:"PUT",
+    contentType:"application/json",
+    data: JSON.stringify(data),
+
+    success:function(res){
+
+    alert(res.message || "Data berhasil diupdate")
+    resetForm()
+    loadData()
+
+    },
+
+    error:function(xhr){
+
+    alert(xhr.responseJSON?.message || " nomor KTP sudah ada ")
+
+    }
+
+    })
+
+    }
+
+    }
+
+    function edit(id){
+
+    $.get(api+"/"+id,function(res){
+
+    let d = res.data
+
+    $("#id").val(d.id)
+    $("#nomorKtp").val(d.nomorKtp)
+    $("#namaLengkap").val(d.namaLengkap)
+    $("#alamat").val(d.alamat)
+    $("#tanggalLahir").val(d.tanggalLahir)
+    $("#jenisKelamin").val(d.jenisKelamin)
+
+    })
+
+    }
+
+    function hapus(id){
+
+    if(confirm("Yakin ingin menghapus data?")){
+
+    $.ajax({
+
+    url: api+"/"+id,
+    method:"DELETE",
+
+    success:function(res){
+
+    alert(res.message || "Data berhasil dihapus")
+    loadData()
+
+    },
+
+    error:function(xhr){
+
+    alert(xhr.responseJSON?.message || " Terjadi kesalahan")
+
+    }
+
+    })
+
+    }
+
+    }
+
+    function resetForm(){
+
+    $("#id").val("")
+    $("#nomorKtp").val("")
+    $("#namaLengkap").val("")
+    $("#alamat").val("")
+    $("#tanggalLahir").val("")
+    $("#jenisKelamin").val("Laki-laki")
+
+    }
+
+    $(document).ready(function(){
+    loadData()
+    })
+
+</script>
+
+</body>
+</html>
